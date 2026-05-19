@@ -1,7 +1,7 @@
 from fastapi import FastAPI, UploadFile, File
 import shutil
 import os
-
+from services.transcription import transcribe_audio
 app = FastAPI()
 
 UPLOAD_DIR = "uploads"
@@ -12,9 +12,16 @@ def home():
     return {"message": "Server is running 🚀"}
 @app.post("/upload")
 async def upload_file(file: UploadFile = File(...)):
-   file_path = os.path.join(UPLOAD_DIR, file.filename)
+    from services.transcription import transcribe_audio   # 👈 moved here
 
-   with open(file_path, "wb") as buffer:
-       shutil.copyfileobj(file.file, buffer)
+    file_path = os.path.join(UPLOAD_DIR, file.filename)
 
-   return {"filename": file.filename, "message": "Upload successful"}
+    with open(file_path, "wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+
+    transcript = transcribe_audio(file_path)
+
+    return {
+        "filename": file.filename,
+        "transcript": transcript
+    }
