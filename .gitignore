@@ -1,4 +1,9 @@
-myenv/
+venv/
 __pycache__/
 *.pyc
+uploads/
+transcripts/
+*.mp3
+*.mp4
+*.wav
 .env
