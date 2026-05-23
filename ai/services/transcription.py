@@ -2,7 +2,6 @@ from moviepy import VideoFileClip
 import whisper
 import os
 
-model = whisper.load_model("base")
 
 def extract_audio(video_path, output_audio_path):
     if not os.path.exists(video_path):
@@ -13,10 +12,18 @@ def extract_audio(video_path, output_audio_path):
     video.close()
     return output_audio_path
 
+_model = None
+
+def get_model():
+    global _model
+    if _model is None:
+        _model = whisper.load_model("base")
+    return _model
+
 def transcribe_audio(file_path):
     if not os.path.exists(file_path):
         raise FileNotFoundError(f"Audio file not found: {file_path}")
-    result = model.transcribe(file_path)
+    result = get_model().transcribe(file_path)
     return result["text"]
 
 def clean_transcript(text):
