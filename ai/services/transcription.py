@@ -7,6 +7,7 @@ def extract_audio(video_path, output_audio_path):
     video = VideoFileClip(video_path)
     audio = video.audio
     audio.write_audiofile(output_audio_path)
+    video.close()
     return output_audio_path
 
 def transcribe_audio(file_path):
