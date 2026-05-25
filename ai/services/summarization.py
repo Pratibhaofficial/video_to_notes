@@ -32,3 +32,19 @@ Transcript:
         contents=prompt
     )
     return response.text
+
+def chunk_text(text, size=1000):
+    chunks = [text[i:i+size] for i in range(0, len(text), size)]
+    return chunks
+
+def generate_notes_for_long_transcript(transcript):
+    chunks = chunk_text(transcript)
+    all_notes = []
+
+    for i, chunk in enumerate(chunks):
+        print(f"Processing chunk {i+1} of {len(chunks)}...")
+        notes = generate_notes(chunk)
+        all_notes.append(notes)
+
+    combined = "\n\n---\n\n".join(all_notes)
+    return combined
