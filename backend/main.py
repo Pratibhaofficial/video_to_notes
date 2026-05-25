@@ -19,10 +19,12 @@ def home():
 @app.post("/upload")
 async def upload_file(file: UploadFile = File(...)):
     
-    file_path = os.path.join(UPLOAD_DIR, file.filename)
+    file_path = os.path.abspath(os.path.join(UPLOAD_DIR, file.filename))
 
     with open(file_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
+    import time
+    time.sleep(1)
 
     try:
         # 🎥 If video → use HER extract_audio
