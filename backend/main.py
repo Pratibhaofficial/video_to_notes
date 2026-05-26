@@ -5,6 +5,7 @@ from moviepy import VideoFileClip
 
 from ai.services.summarization import generate_notes
 from ai.services.transcription import transcribe_audio, extract_audio
+from ai.services.rag import ask_question
 
 app = FastAPI()
 
@@ -36,6 +37,9 @@ async def upload_file(file: UploadFile = File(...)):
 
         # 🎧 Use HER transcription
         transcript = transcribe_audio(audio_path)
+        os.makedirs("transcripts", exist_ok=True)
+        with open("transcripts/latest.txt", "w") as f:
+            f.write(transcript)
 
         # 📝 Notes
         notes = generate_notes(transcript)
@@ -48,3 +52,23 @@ async def upload_file(file: UploadFile = File(...)):
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+@app.post("/ask")
+async def ask(query: str):
+
+    if not query.strip():
+        return {"error": "Empty query"}
+
+    try:
+        # 📂 Load transcript safely (FIXED)
+        with open("transcripts/latest.txt", "r") as f:
+            transcript = f.read()
+
+    except FileNotFoundError:
+        return {"error": "No transcript found. Please upload a file first."}
+
+    answer = ask_question(query, transcript)
+    return {
+        "question": query,
+        "answer": answer,
+        "source": "lecture transcript"
+    }
