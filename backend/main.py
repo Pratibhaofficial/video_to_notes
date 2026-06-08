@@ -6,10 +6,18 @@ from moviepy import VideoFileClip
 from ai.services.summarization import generate_notes
 from ai.services.transcription import transcribe_audio, extract_audio
 from ai.services.rag import ask_question
+from fastapi.middleware.cors import CORSMiddleware
+
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 TRANSCRIPT_PATH = os.path.join(BASE_DIR, "transcripts", "latest.txt")
 app = FastAPI()
-
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 UPLOAD_DIR = "uploads"
 os.makedirs(os.path.dirname(TRANSCRIPT_PATH), exist_ok=True)
 

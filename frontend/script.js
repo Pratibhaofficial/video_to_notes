@@ -11,8 +11,17 @@ async function uploadFile() {
 
    const data = await res.json();
 
-   document.getElementById("transcript").innerText = data.transcript;
-   document.getElementById("notes").innerText = data.notes;
+    console.log(data);  // 🔥 see actual response
+
+    if (data.transcript) {
+        document.getElementById("transcript").innerText = data.transcript;
+    } else {
+        document.getElementById("transcript").innerText = "Error loading transcript";
+    }
+
+    if (data.notes) {
+        document.getElementById("notes").innerText = data.notes;
+    }
 }
 
 
