@@ -6,6 +6,7 @@ from moviepy import VideoFileClip
 from ai.services.summarization import generate_notes
 from ai.services.transcription import transcribe_audio, extract_audio
 from ai.services.rag import ask_question
+
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 TRANSCRIPT_PATH = os.path.join(BASE_DIR, "transcripts", "latest.txt")
 app = FastAPI()
@@ -22,9 +23,16 @@ def home():
 @app.post("/upload")
 async def upload_file(file: UploadFile = File(...)):
 
+    # ✅ GUARD 1 — Unsupported file type
+    allowed_extensions = (".mp4", ".mp3", ".wav", ".mkv", ".m4a")
+    if not file.filename.lower().endswith(allowed_extensions):
+        raise HTTPException(
+            status_code=400,
+            detail="Unsupported file type. Please upload .mp4, .mp3, .wav, .mkv, or .m4a"
+        )
+
     file_path = os.path.abspath(os.path.join(UPLOAD_DIR, file.filename))
 
-    # Save uploaded file
     with open(file_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
 
@@ -39,17 +47,26 @@ async def upload_file(file: UploadFile = File(...)):
         # 🎧 Transcription
         transcript = transcribe_audio(audio_path)
 
-        # ✅ SAVE TRANSCRIPT HERE (CORRECT PLACE)
-        os.makedirs(os.path.dirname(TRANSCRIPT_PATH), exist_ok=True)
+        # ✅ GUARD 2 — Empty transcript
+        if not transcript or transcript.strip() == "":
+            raise HTTPException(
+                status_code=422,
+                detail="Could not extract speech from this file. Check if the audio is clear."
+            )
 
+        # ✅ Save transcript
+        os.makedirs(os.path.dirname(TRANSCRIPT_PATH), exist_ok=True)
         with open(TRANSCRIPT_PATH, "w") as f:
             f.write(transcript)
 
         print("Saved transcript at:", TRANSCRIPT_PATH)
         print("Transcript preview:", transcript[:200])
 
-        # 📝 Notes
-        notes = generate_notes(transcript)
+        # 📝 Notes — GUARD 3: don't crash if notes fail
+        try:
+            notes = generate_notes(transcript)
+        except Exception:
+            notes = "Notes could not be generated. Transcript is available above."
 
         return {
             "filename": file.filename,
@@ -57,13 +74,19 @@ async def upload_file(file: UploadFile = File(...)):
             "notes": notes
         }
 
+    except HTTPException:
+        raise  # re-raise our own clean errors as-is
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
 @app.post("/ask")
 async def ask(query: str):
 
+    # already existed — keeping as is
     if not query.strip():
-        return {"error": "Empty query"}
+        return {"error": "Empty query. Please enter a question."}
 
     try:
         with open(TRANSCRIPT_PATH, "r") as f:
@@ -72,12 +95,11 @@ async def ask(query: str):
 
     except FileNotFoundError:
         return {
-            "error": "No transcript found. Please upload a file first using /upload endpoint."
+            "error": "No transcript found. Please upload a file first."
         }
 
     try:
         answer = ask_question(query, transcript)
-
         return {
             "question": query,
             "answer": answer,
@@ -89,4 +111,3 @@ async def ask(query: str):
             "error": "AI service is busy. Try again.",
             "details": str(e)
         }
-    
