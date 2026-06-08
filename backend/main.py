@@ -38,6 +38,9 @@ async def upload_file(file: UploadFile = File(...)):
 
         # 🎧 Transcription
         transcript = transcribe_audio(audio_path)
+        os.makedirs("transcripts", exist_ok=True)
+        with open("transcripts/latest.txt", "w") as f:
+            f.write(transcript)
 
         # ✅ SAVE TRANSCRIPT HERE (CORRECT PLACE)
         os.makedirs(os.path.dirname(TRANSCRIPT_PATH), exist_ok=True)
