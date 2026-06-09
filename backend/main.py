@@ -101,3 +101,44 @@ async def ask(query: str):
             "details": str(e)
         }
     
+from ai.services.youtube import download_youtube_audio
+
+@app.post("/upload-youtube")
+async def upload_youtube(url: str):
+    if not url.strip():
+        raise HTTPException(status_code=400, detail="Please provide a YouTube URL.")
+    
+    if "youtube.com" not in url and "youtu.be" not in url:
+        raise HTTPException(status_code=400, detail="Invalid YouTube URL.")
+    
+    try:
+        # Download audio from YouTube
+        audio_path = download_youtube_audio(url)
+        
+        # Transcribe
+        transcript = transcribe_audio(audio_path)
+        
+        if not transcript or transcript.strip() == "":
+            raise HTTPException(status_code=422, detail="Could not extract speech from this video.")
+        
+        # Save transcript
+        os.makedirs(os.path.dirname(TRANSCRIPT_PATH), exist_ok=True)
+        with open(TRANSCRIPT_PATH, "w") as f:
+            f.write(transcript)
+        
+        # Generate notes
+        try:
+            notes = generate_notes(transcript)
+        except Exception:
+            notes = "Notes could not be generated. Transcript is available above."
+        
+        return {
+            "url": url,
+            "transcript": transcript,
+            "notes": notes
+        }
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
