@@ -23,7 +23,6 @@ def home():
 @app.post("/upload")
 async def upload_file(file: UploadFile = File(...)):
 
-    # ✅ GUARD 1 — Unsupported file type
     allowed_extensions = (".mp4", ".mp3", ".wav", ".mkv", ".m4a")
     if not file.filename.lower().endswith(allowed_extensions):
         raise HTTPException(
@@ -37,24 +36,20 @@ async def upload_file(file: UploadFile = File(...)):
         shutil.copyfileobj(file.file, buffer)
 
     try:
-        # 🎥 If video → extract audio
         if file.filename.lower().endswith(".mp4"):
             audio_path = file_path.replace(".mp4", ".mp3")
             extract_audio(file_path, audio_path)
         else:
             audio_path = file_path
 
-        # 🎧 Transcription
         transcript = transcribe_audio(audio_path)
 
-        # ✅ GUARD 2 — Empty transcript
         if not transcript or transcript.strip() == "":
             raise HTTPException(
                 status_code=422,
                 detail="Could not extract speech from this file. Check if the audio is clear."
             )
 
-        # ✅ Save transcript
         os.makedirs(os.path.dirname(TRANSCRIPT_PATH), exist_ok=True)
         with open(TRANSCRIPT_PATH, "w") as f:
             f.write(transcript)
@@ -62,7 +57,6 @@ async def upload_file(file: UploadFile = File(...)):
         print("Saved transcript at:", TRANSCRIPT_PATH)
         print("Transcript preview:", transcript[:200])
 
-        # 📝 Notes — GUARD 3: don't crash if notes fail
         try:
             notes = generate_notes(transcript)
         except Exception:
@@ -75,7 +69,7 @@ async def upload_file(file: UploadFile = File(...)):
         }
 
     except HTTPException:
-        raise  # re-raise our own clean errors as-is
+        raise
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -84,7 +78,6 @@ async def upload_file(file: UploadFile = File(...)):
 @app.post("/ask")
 async def ask(query: str):
 
-    # already existed — keeping as is
     if not query.strip():
         return {"error": "Empty query. Please enter a question."}
 

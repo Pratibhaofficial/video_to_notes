@@ -57,7 +57,7 @@ def cosine_similarity(a, b):
     b = np.array(b)
     return np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b))
 
-def retrieve_relevant_chunks(query, embeddings, top_k=3, min_score=0.25):
+def retrieve_relevant_chunks(query, embeddings, top_k=5, min_score=0.25):
     try:
         response = client.models.embed_content(
             model="models/gemini-embedding-2",
@@ -89,30 +89,43 @@ def generate_answer(query, context):
         return "This wasn't covered in the lecture."
 
     prompt = f"""
-You are a helpful study assistant answering questions about a lecture.
+You are a helpful AI tutor.
+Answer ONLY from the context below.
 
-STRICT RULES:
-- Answer ONLY using the context provided below
-- Format your answer as bullet points
-- Be concise — no unnecessary explanation
-- If the answer is not in the context, respond EXACTLY with: "This wasn't covered in the lecture."
-- Never guess or add outside knowledge
+Format your answer EXACTLY like this:
+
+**Definition:**
+(one line definition)
+
+**Explanation:**
+(2-3 bullet points explaining the concept)
+
+**Example (if available in context):**
+(a real example from the lecture, or skip if not present)
+
+Rules:
+- Use ONLY the context provided
+- Never add outside knowledge
+- If not found, say: "This wasn't covered in the lecture."
 
 Context:
 {context}
 
 Question: {query}
-
-Answer:
 """
-    try:
-        response = client.models.generate_content(
-            model="gemini-2.5-flash",
-            contents=prompt
-        )
-        return response.text
-    except Exception as e:
-        return f"Error generating answer: {e}"
+    for attempt in range(3):
+        try:
+            response = client.models.generate_content(
+                model="gemini-2.5-flash",
+                contents=prompt
+            )
+            return response.text
+        except Exception as e:
+            print(f"[Attempt {attempt + 1} failed] {e}")
+            if attempt < 2:
+                time.sleep(5)
+
+    return "AI service is busy. Please try again."
 
 # ─── STEP 6: MAIN PIPELINE ───────────────────────────────────────────────────
 
@@ -138,5 +151,5 @@ def ask_question(query, transcript):
     if not relevant_chunks:
         return "This wasn't covered in the lecture."
 
-    context = "\n\n---\n\n".join(relevant_chunks)
+    context = "\n\n".join(relevant_chunks)
     return generate_answer(query, context)
