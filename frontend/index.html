@@ -1,28 +1,68 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Video to Notes</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Video to Notes</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
 </head>
 <body>
+  <div class="app">
+    <div class="header">
+      <h1>Video to Notes</h1>
+      <p>Upload a lecture video and get instant notes + Q&A</p>
+    </div>
 
-<h2>Upload Lecture</h2>
-<input type="file" id="fileInput">
-<button onclick="uploadFile()">Upload</button>
+    <div class="card">
+      <div class="card-title"><i class="ti ti-upload"></i> Upload lecture</div>
+      <div class="upload-zone" onclick="document.getElementById('fileInput').click()">
+        <i class="ti ti-file-upload"></i>
+        <p>Click to choose a file</p>
+        <span>.mp4 · .mp3 · .wav · .mkv · .m4a</span>
+      </div>
+      <input type="file" id="fileInput" accept=".mp4,.mp3,.wav,.mkv,.m4a" onchange="onFileSelect(this)">
+      <p class="file-name" id="fileName"><i class="ti ti-file"></i> <span id="fileNameText"></span></p>
+      <div class="btn-row">
+        <button class="btn btn-primary" id="uploadBtn" onclick="uploadFile()" disabled>
+          <i class="ti ti-sparkles"></i> Process lecture
+        </button>
+        <div class="status" id="uploadStatus">
+          <div class="spinner"></div> Processing — this may take a minute...
+        </div>
+      </div>
+      <p class="error-msg" id="uploadError"></p>
+    </div>
 
-<h2>Transcript</h2>
-<pre id="transcript"></pre>
+    <div class="card">
+      <div class="tabs">
+        <div class="tab active" onclick="switchTab('transcript')">Transcript</div>
+        <div class="tab" onclick="switchTab('notes')">Notes</div>
+      </div>
+      <div class="empty-state" id="emptyState">
+        <i class="ti ti-notes"></i>
+        Upload a lecture to see transcript and notes
+      </div>
+      <pre class="output-box" id="transcript"></pre>
+      <pre class="output-box" id="notes"></pre>
+    </div>
 
-<h2>Notes</h2>
-<pre id="notes"></pre>
+    <div class="card">
+      <div class="card-title"><i class="ti ti-message-circle"></i> Ask a question</div>
+      <div class="chat-input-row">
+        <input type="text" id="query" placeholder="e.g. What is Round Robin scheduling?" onkeydown="if(event.key==='Enter') askQuestion()">
+        <button class="btn btn-primary" id="askBtn" onclick="askQuestion()">
+          <i class="ti ti-send"></i> Ask
+        </button>
+      </div>
+      <p class="error-msg" id="askError"></p>
+      <div class="answer-box" id="answerBox">
+        <div class="answer-label">Answer</div>
+        <div id="answer"></div>
+      </div>
+    </div>
+  </div>
 
-<h2>Ask Question</h2>
-<input type="text" id="query">
-<button onclick="askQuestion()">Ask</button>
-
-<pre id="answer"></pre>
-
-<script src="script.js"></script>
-
+  <script src="script.js"></script>
 </body>
 </html>

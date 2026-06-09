@@ -1,9 +1,239 @@
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
 body {
-   font-family: Arial;
-   margin: 20px;
+  font-family: Arial, sans-serif;
+  background: #f5f5f5;
+  color: #1a1a1a;
+  min-height: 100vh;
 }
 
-pre {
-   background: #f4f4f4;
-   padding: 10px;
+.app {
+  max-width: 780px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+.header {
+  margin-bottom: 2rem;
+}
+
+.header h1 {
+  font-size: 24px;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.header p {
+  font-size: 14px;
+  color: #666;
+  margin-top: 4px;
+}
+
+.card {
+  background: #ffffff;
+  border: 1px solid #e5e5e5;
+  border-radius: 12px;
+  padding: 1.25rem;
+  margin-bottom: 1rem;
+}
+
+.card-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.upload-zone {
+  border: 2px dashed #d0d0d0;
+  border-radius: 8px;
+  padding: 2rem;
+  text-align: center;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.upload-zone:hover {
+  background: #f9f9f9;
+}
+
+.upload-zone i {
+  font-size: 28px;
+  color: #aaa;
+  display: block;
+  margin-bottom: 8px;
+}
+
+.upload-zone p {
+  font-size: 14px;
+  color: #666;
+}
+
+.upload-zone span {
+  font-size: 12px;
+  color: #aaa;
+}
+
+input[type="file"] {
+  display: none;
+}
+
+.file-name {
+  font-size: 13px;
+  color: #555;
+  margin-top: 10px;
+  display: none;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 18px;
+  font-size: 14px;
+  font-weight: 500;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background: transparent;
+  color: #1a1a1a;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+}
+
+.btn:hover { background: #f0f0f0; }
+.btn:active { transform: scale(0.98); }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.btn-primary {
+  background: #1a1a1a;
+  color: #ffffff;
+  border-color: #1a1a1a;
+}
+
+.btn-primary:hover { background: #333; }
+
+.status {
+  display: none;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #666;
+}
+
+.spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid #ddd;
+  border-top-color: #1a1a1a;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.tabs {
+  display: flex;
+  gap: 4px;
+  border-bottom: 1px solid #e5e5e5;
+  margin-bottom: 1rem;
+}
+
+.tab {
+  padding: 8px 14px;
+  font-size: 13px;
+  color: #888;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+}
+
+.tab.active {
+  color: #1a1a1a;
+  border-bottom-color: #1a1a1a;
+  font-weight: 500;
+}
+
+.output-box {
+  font-family: monospace;
+  font-size: 13px;
+  color: #1a1a1a;
+  background: #f7f7f7;
+  border-radius: 8px;
+  padding: 1rem;
+  min-height: 80px;
+  white-space: pre-wrap;
+  line-height: 1.6;
+  display: none;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 2rem;
+  color: #bbb;
+  font-size: 13px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.empty-state i { font-size: 24px; }
+
+.chat-input-row {
+  display: flex;
+  gap: 8px;
+}
+
+.chat-input-row input {
+  flex: 1;
+  padding: 9px 12px;
+  font-size: 14px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  outline: none;
+  transition: border 0.15s;
+}
+
+.chat-input-row input:focus { border-color: #999; }
+
+.answer-box {
+  margin-top: 1rem;
+  display: none;
+}
+
+.answer-label {
+  font-size: 12px;
+  color: #aaa;
+  margin-bottom: 6px;
+}
+
+#answer {
+  font-size: 14px;
+  color: #1a1a1a;
+  line-height: 1.7;
+  white-space: pre-wrap;
+  background: #f7f7f7;
+  border-radius: 8px;
+  padding: 1rem;
+}
+
+.error-msg {
+  font-size: 13px;
+  color: #cc3333;
+  margin-top: 8px;
+  display: none;
 }
