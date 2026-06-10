@@ -20,11 +20,20 @@ def get_model():
         _model = whisper.load_model("base")
     return _model
 
-def transcribe_audio(file_path):
+def transcribe_audio(file_path, language=None):
     if not os.path.exists(file_path):
         raise FileNotFoundError(f"Audio file not found: {file_path}")
-    result = get_model().transcribe(file_path)
-    return result["text"]
+    
+    result = get_model().transcribe(
+        file_path,
+        task="transcribe",  # transcribe in original language
+        language=language   # None = auto detect, "hi" = Hindi, "fr" = French etc.
+    )
+    
+    detected_language = result.get("language", "unknown")
+    print(f"[Transcription] Detected language: {detected_language}")
+    
+    return result["text"], detected_language
 
 def clean_transcript(text):
     text = text.replace("\n", " ")

@@ -108,6 +108,7 @@ Rules:
 - Use ONLY the context provided
 - Never add outside knowledge
 - If not found, say: "This wasn't covered in the lecture."
+- Answer in the SAME language as the question asked
 
 Context:
 {context}
