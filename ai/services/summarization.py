@@ -51,7 +51,7 @@ Transcript:
 {transcript}
 """
 
-    for attempt in range(3):
+    for attempt in range(5):
         try:
             response = client.models.generate_content(
                 model="gemini-2.5-flash",
@@ -61,10 +61,10 @@ Transcript:
 
         except Exception as e:
             print(f"[Attempt {attempt + 1} failed] {e}")
-            if attempt < 2:
-                time.sleep(5)
+            if attempt < 4:
+                time.sleep(10)
 
-    return "Failed to generate notes after 3 attempts. Please try again later."
+    return "Failed to generate notes after 5 attempts. Please try again later."
 
 
 def chunk_text(text, size=1000):

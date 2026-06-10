@@ -27,6 +27,15 @@
           <p>Click to choose a file</p>
           <span>.mp4 · .mp3 · .wav · .mkv · .m4a</span>
         </div>
+        
+        <div style="text-align:center; margin: 10px 0; color:#a5b4fc; font-size:13px;">— or —</div>
+      <div class="yt-row">
+        <input type="text" id="ytUrl" placeholder="Paste YouTube URL here...">
+        <button class="btn btn-primary" id="ytBtn" onclick="uploadYoutube()">
+          <i class="ti ti-brand-youtube"></i> Use URL
+        </button>
+      </div>
+
         <input type="file" id="fileInput" accept=".mp4,.mp3,.wav,.mkv,.m4a" onchange="onFileSelect(this)">
 
         <div class="media-container" id="mediaContainer"></div>

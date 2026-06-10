@@ -284,3 +284,23 @@ input[type="file"] { display: none; }
   border-radius: 6px;
   padding: 7px 12px;
 }
+
+.yt-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.yt-row input {
+  flex: 1;
+  padding: 8px 12px;
+  font-size: 13px;
+  border: 1.5px solid #c7d2fe;
+  border-radius: 8px;
+  outline: none;
+  transition: border 0.15s;
+  background: #f8faff;
+  color: #1e1b4b;
+}
+
+.yt-row input:focus { border-color: #6366f1; }

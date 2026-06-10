@@ -30,10 +30,14 @@ function switchTab(tab) {
   document.querySelectorAll('.tab').forEach((t, i) => {
     t.classList.toggle('active', (i === 0 && tab === 'transcript') || (i === 1 && tab === 'notes'));
   });
-  const has = document.getElementById('transcript').style.display === 'block';
-  if (has) {
-    document.getElementById('transcript').style.display = tab === 'transcript' ? 'block' : 'none';
-    document.getElementById('notes').style.display = tab === 'notes' ? 'block' : 'none';
+
+  const transcript = document.getElementById('transcript');
+  const notes = document.getElementById('notes');
+
+  // only switch if content is actually loaded
+  if (transcript.textContent || notes.textContent) {
+    transcript.style.display = tab === 'transcript' ? 'block' : 'none';
+    notes.style.display = tab === 'notes' ? 'block' : 'none';
   }
 }
 
@@ -106,5 +110,43 @@ async function askQuestion() {
     answerBox.style.display = 'none';
   } finally {
     btn.disabled = false;
+  }
+}
+
+async function uploadYoutube() {
+  const url = document.getElementById('ytUrl').value.trim();
+  const errEl = document.getElementById('uploadError');
+  const btn = document.getElementById('ytBtn');
+  const status = document.getElementById('uploadStatus');
+
+  if (!url) {
+    errEl.textContent = 'Please paste a YouTube URL.';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  btn.disabled = true;
+  status.style.display = 'flex';
+  errEl.style.display = 'none';
+
+  try {
+    const res = await fetch(`http://127.0.0.1:8000/upload-youtube?url=${encodeURIComponent(url)}`, {
+      method: 'POST'
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || 'Failed to process YouTube video.');
+
+    document.getElementById('emptyState').style.display = 'none';
+    document.getElementById('transcript').textContent = data.transcript || 'No transcript returned.';
+    document.getElementById('notes').textContent = data.notes || 'No notes returned.';
+    document.getElementById('transcript').style.display = activeTab === 'transcript' ? 'block' : 'none';
+    document.getElementById('notes').style.display = activeTab === 'notes' ? 'block' : 'none';
+
+  } catch (err) {
+    errEl.textContent = err.message || 'Something went wrong.';
+    errEl.style.display = 'block';
+  } finally {
+    btn.disabled = false;
+    status.style.display = 'none';
   }
 }
