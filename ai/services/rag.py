@@ -1,4 +1,5 @@
 import os
+import time
 import numpy as np
 from google import genai
 from dotenv import load_dotenv
@@ -26,7 +27,7 @@ _cached_transcript = None
 
 # ─── STEP 2: CHUNK TRANSCRIPT ────────────────────────────────────────────────
 
-def chunk_text(text, chunk_size=500, overlap=50):
+def chunk_text(text, chunk_size=400, overlap=50):
     chunks = []
     start = 0
     while start < len(text):
@@ -57,16 +58,16 @@ def cosine_similarity(a, b):
     b = np.array(b)
     return np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b))
 
-def retrieve_relevant_chunks(query, embeddings, top_k=3):
+def retrieve_relevant_chunks(query, embeddings, top_k=5, min_score=0.25):
     try:
         response = client.models.embed_content(
-            model="models/gemini-embedding-2",  # fixed from models/gemini-embedding-2
+            model="models/gemini-embedding-2",
             contents=query
         )
         query_embedding = response.embeddings[0].values
     except Exception as e:
         print(f"Error embedding query: {e}")
-        return []
+        return [], 0.0
 
     scores = []
     for chunk, emb in embeddings:
@@ -74,34 +75,58 @@ def retrieve_relevant_chunks(query, embeddings, top_k=3):
         scores.append((chunk, score))
 
     scores.sort(key=lambda x: x[1], reverse=True)
-    return [chunk for chunk, _ in scores[:top_k]]
+
+    # ← NEW: if best score is too low, question is out of scope
+    top_score = scores[0][1] if scores else 0.0
+    if top_score < min_score:
+        return [], top_score
+
+    return [chunk for chunk, score in scores[:top_k] if score >= min_score], top_score
 
 # ─── STEP 5: GENERATE ANSWER ─────────────────────────────────────────────────
 
 def generate_answer(query, context):
     if not context.strip():
-        return "Not found in lecture."
+        return "This wasn't covered in the lecture."
 
     prompt = f"""
 You are a helpful AI tutor.
+Answer ONLY from the context below.
 
-Answer ONLY using the context below.
-If the answer is not present, say "Not found in lecture".
+Format your answer EXACTLY like this:
+
+**Definition:**
+(one line definition)
+
+**Explanation:**
+(2-3 bullet points explaining the concept)
+
+**Example (if available in context):**
+(a real example from the lecture, or skip if not present)
+
+Rules:
+- Use ONLY the context provided
+- Never add outside knowledge
+- If not found, say: "This wasn't covered in the lecture."
 
 Context:
 {context}
 
-Question:
-{query}
+Question: {query}
 """
-    try:
-        response = client.models.generate_content(
-            model="gemini-2.5-flash",
-            contents=prompt
-        )
-        return response.text
-    except Exception as e:
-        return f"Error generating answer: {e}"
+    for attempt in range(3):
+        try:
+            response = client.models.generate_content(
+                model="gemini-2.5-flash",
+                contents=prompt
+            )
+            return response.text
+        except Exception as e:
+            print(f"[Attempt {attempt + 1} failed] {e}")
+            if attempt < 2:
+                time.sleep(5)
+
+    return "AI service is busy. Please try again."
 
 # ─── STEP 6: MAIN PIPELINE ───────────────────────────────────────────────────
 
@@ -121,10 +146,11 @@ def ask_question(query, transcript):
         _cached_transcript = transcript
         print(f"Done. {len(_cached_embeddings)} chunks embedded.")
 
-    relevant_chunks = retrieve_relevant_chunks(query, _cached_embeddings)
+    # ← updated to unpack tuple
+    relevant_chunks, top_score = retrieve_relevant_chunks(query, _cached_embeddings)
 
     if not relevant_chunks:
-        return "Could not find relevant content in the lecture."
+        return "This wasn't covered in the lecture."
 
-    context = "\n\n---\n\n".join(relevant_chunks)
+    context = "\n\n".join(relevant_chunks)
     return generate_answer(query, context)

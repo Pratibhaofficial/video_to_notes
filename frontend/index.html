@@ -1,28 +1,99 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Video to Notes</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Video to Notes</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
 </head>
 <body>
 
-<h2>Upload Lecture</h2>
-<input type="file" id="fileInput">
-<button onclick="uploadFile()">Upload</button>
+  <div class="header">
+    <div>
+      <h1>Video to Notes <span class="badge">AI</span></h1>
+      <p>Upload a lecture · get notes · ask questions</p>
+    </div>
+  </div>
 
-<h2>Transcript</h2>
-<pre id="transcript"></pre>
+  <div class="layout">
 
-<h2>Notes</h2>
-<pre id="notes"></pre>
+    <div class="panel">
 
-<h2>Ask Question</h2>
-<input type="text" id="query">
-<button onclick="askQuestion()">Ask</button>
+      <div class="card">
+        <div class="card-title"><i class="ti ti-upload"></i> Upload lecture</div>
+        <div class="upload-zone" onclick="document.getElementById('fileInput').click()">
+          <i class="ti ti-file-upload"></i>
+          <p>Click to choose a file</p>
+          <span>.mp4 · .mp3 · .wav · .mkv · .m4a</span>
+        </div>
+        
+        <div style="text-align:center; margin: 10px 0; color:#a5b4fc; font-size:13px;">— or —</div>
+      <div class="yt-row">
+        <input type="text" id="ytUrl" placeholder="Paste YouTube URL here...">
+        <button class="btn btn-primary" id="ytBtn" onclick="uploadYoutube()">
+          <i class="ti ti-brand-youtube"></i> Use URL
+        </button>
+      </div>
 
-<pre id="answer"></pre>
+        <input type="file" id="fileInput" accept=".mp4,.mp3,.wav,.mkv,.m4a" onchange="onFileSelect(this)">
 
-<script src="script.js"></script>
+        <div class="media-container" id="mediaContainer"></div>
 
+        <p class="file-name" id="fileName">
+          <i class="ti ti-file" style="font-size:13px"></i>
+          <span id="fileNameText"></span>
+        </p>
+        <div class="btn-row">
+          <button class="btn btn-primary" id="uploadBtn" onclick="uploadFile()" disabled>
+            <i class="ti ti-sparkles"></i> Process lecture
+          </button>
+          <div class="status" id="uploadStatus">
+            <div class="spinner"></div> Processing...
+          </div>
+        </div>
+        <p class="error-msg" id="uploadError"></p>
+      </div>
+
+      <div class="card chat-card">
+        <div class="card-title"><i class="ti ti-message-circle"></i> Ask a question</div>
+        <div class="chat-row">
+          <input type="text" id="query" placeholder="e.g. What is Round Robin scheduling?"
+                 onkeydown="if(event.key==='Enter') askQuestion()">
+          <button class="btn btn-primary" id="askBtn" onclick="askQuestion()">
+            <i class="ti ti-send"></i> Ask
+          </button>
+        </div>
+        <p class="error-msg" id="askError"></p>
+        <div class="answer-box" id="answerBox">
+          <div class="answer-label">Answer</div>
+          <div id="answer"></div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="panel">
+      <div class="card output-card">
+        <div class="tabs">
+          <div class="tab active" onclick="switchTab('transcript')">
+            <i class="ti ti-align-left" style="font-size:13px"></i> Transcript
+          </div>
+          <div class="tab" onclick="switchTab('notes')">
+            <i class="ti ti-notes" style="font-size:13px"></i> Notes
+          </div>
+        </div>
+        <div class="empty-state" id="emptyState">
+          <i class="ti ti-notes"></i>
+          Upload a lecture to see transcript and notes
+        </div>
+        <pre class="output-box" id="transcript"></pre>
+        <pre class="output-box" id="notes"></pre>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="script.js"></script>
 </body>
 </html>
