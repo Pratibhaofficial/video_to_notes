@@ -51,7 +51,8 @@ async def upload_file(file: UploadFile = File(...)):
         else:
             audio_path = file_path
 
-        transcript = transcribe_audio(audio_path)
+        transcript, detected_lang = transcribe_audio(audio_path)
+        print(f"Detected language: {detected_lang}")
 
         if not transcript or transcript.strip() == "":
             raise HTTPException(
@@ -129,7 +130,7 @@ async def upload_youtube(url: str):
         audio_path = download_youtube_audio(url)
         
         # Transcribe
-        transcript = transcribe_audio(audio_path)
+        transcript, detected_lang = transcribe_audio(audio_path)
         
         if not transcript or transcript.strip() == "":
             raise HTTPException(status_code=422, detail="Could not extract speech from this video.")
