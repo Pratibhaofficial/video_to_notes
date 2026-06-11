@@ -21,6 +21,7 @@ STRICT RULES:
 - If something is unclear in the transcript, skip it
 - Remove all filler words and repetition
 - Keep it concise and exam-friendly
+- Generate notes in the SAME language as the transcript
 
 Output format (use this EXACTLY):
 
