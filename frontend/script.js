@@ -64,11 +64,19 @@ async function uploadFile() {
   method: 'POST',
   body: fd
 });
-    const data = await res.json();
+    console.log("Response status:", res.status);
+
+    const text = await res.text();
+    console.log("Raw response:", text);
+
+    const data = JSON.parse(text);
+    if (!data || !data.session_id) {
+  throw new Error("Backend did not return session_id");
+}
     sessionId = data.session_id;   // 🔥 STORE SESSION
     chatHistory = [];
     renderChat();            // reset chat
-
+    
     if (!res.ok) throw new Error(data.detail || 'Upload failed. Please try again.');
 
     document.getElementById('emptyState').style.display = 'none';
