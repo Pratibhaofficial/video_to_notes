@@ -38,65 +38,32 @@ def home():
 async def upload_file(file: UploadFile = File(...)):
     global sessions
 
-
     allowed_extensions = (".mp4", ".mp3", ".wav", ".mkv", ".m4a")
     if not file.filename.lower().endswith(allowed_extensions):
         raise HTTPException(
             status_code=400,
             detail="Unsupported file type. Please upload .mp4, .mp3, .wav, .mkv, or .m4a"
         )
-    os.makedirs(UPLOAD_DIR, exist_ok=True) 
-    file_path = os.path.abspath(os.path.join(UPLOAD_DIR, file.filename))
 
-    with open(file_path, "wb") as buffer:
-        shutil.copyfileobj(file.file, buffer)
+    # ✅ ALWAYS ensure uploads folder exists
+    os.makedirs(UPLOAD_DIR, exist_ok=True)
 
+    print("UPLOAD_DIR:", UPLOAD_DIR)
+
+    # ✅ SAFE filename (avoids weird issues)
+    ext = file.filename.split(".")[-1]
+    safe_filename = f"{uuid.uuid4()}.{ext}"
+    file_path = os.path.join(UPLOAD_DIR, safe_filename)
+
+    print("Saving file at:", file_path)
+
+    # ✅ WRITE FILE
     try:
-        if file.filename.lower().endswith(".mp4"):
-            audio_path = file_path.replace(".mp4", ".mp3")
-            extract_audio(file_path, audio_path)
-        else:
-            audio_path = file_path
-
-        transcript, detected_lang = transcribe_audio(audio_path)
-        print(f"Detected language: {detected_lang}")
-
-        if not transcript or transcript.strip() == "":
-            raise HTTPException(
-                status_code=422,
-                detail="Could not extract speech from this file. Check if the audio is clear."
-            )
-        session_id = str(uuid.uuid4())
-
-        sessions[session_id] = {
-        "transcript": transcript,
-        "history": []
-        }
-        os.makedirs(os.path.dirname(TRANSCRIPT_PATH), exist_ok=True)
-        with open(TRANSCRIPT_PATH, "w", encoding="utf-8") as f:
-            f.write(transcript)
-
-        print("Saved transcript at:", TRANSCRIPT_PATH)
-        print("Transcript preview:", transcript[:200])
-
-        try:
-            notes = generate_notes(transcript)
-        except Exception:
-            notes = "Notes could not be generated. Transcript is available above."
-
-        return {
-            "session_id": session_id,
-            "filename": file.filename,
-            "transcript": transcript,
-            "notes": notes
-        }
-
-    except HTTPException:
-        raise
-
+        with open(file_path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
+        print("File save error:", str(e))
+        raise HTTPException(status_code=500, detail="Failed to save uploaded file")
 
 @app.post("/ask")
 async def ask(req: AskRequest):
