@@ -20,7 +20,7 @@ _model = None
 def get_model():
     global _model
     if _model is None:
-        _model = whisper.load_model("base")  # keep base for speed
+        _model = whisper.load_model("tiny")  # keep base for speed
     return _model
 
 
