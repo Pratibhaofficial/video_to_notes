@@ -1,5 +1,6 @@
 let activeTab = 'transcript';
-
+let sessionId = null;
+let chatHistory = [];
 function onFileSelect(input) {
   const file = input.files[0];
   if (!file) return;
@@ -61,6 +62,9 @@ async function uploadFile() {
     fd.append('file', file);
     const res = await fetch('http://127.0.0.1:8000/upload', { method: 'POST', body: fd });
     const data = await res.json();
+    sessionId = data.session_id;   // 🔥 STORE SESSION
+    chatHistory = [];
+    renderChat();            // reset chat
 
     if (!res.ok) throw new Error(data.detail || 'Upload failed. Please try again.');
 
@@ -83,7 +87,6 @@ async function askQuestion() {
   const query = document.getElementById('query').value.trim();
   const errEl = document.getElementById('askError');
   const answerBox = document.getElementById('answerBox');
-  const answerEl = document.getElementById('answer');
   const btn = document.getElementById('askBtn');
 
   errEl.style.display = 'none';
@@ -94,25 +97,45 @@ async function askQuestion() {
     return;
   }
 
+  if (!sessionId) {
+    errEl.textContent = 'Please upload a lecture first.';
+    errEl.style.display = 'block';
+    return;
+  }
+
   btn.disabled = true;
   answerBox.style.display = 'block';
-  answerEl.textContent = 'Thinking...';
 
   try {
-    const res = await fetch(`http://127.0.0.1:8000/ask?query=${encodeURIComponent(query)}`, { method: 'POST' });
+    const res = await fetch(`http://127.0.0.1:8000/ask`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        session_id: sessionId,
+        query: query
+      })
+    });
+
     const data = await res.json();
     if (data.error) throw new Error(data.error);
-    answerEl.textContent = data.answer || 'No answer returned.';
+
+    // 🔥 ADD TO HISTORY
+    chatHistory.push({
+      question: query,
+      answer: data.answer
+    });
+
+    renderChat(); // 🔥 RENDER EVERYTHING
+
+    document.getElementById('query').value = '';
+
   } catch (err) {
-    answerEl.textContent = '';
-    errEl.textContent = err.message || 'Could not get answer. Is the server running?';
+    errEl.textContent = err.message || 'Error getting answer';
     errEl.style.display = 'block';
-    answerBox.style.display = 'none';
   } finally {
     btn.disabled = false;
   }
 }
-
 async function uploadYoutube() {
   const url = document.getElementById('ytUrl').value.trim();
   const errEl = document.getElementById('uploadError');
@@ -134,6 +157,9 @@ async function uploadYoutube() {
       method: 'POST'
     });
     const data = await res.json();
+    sessionId = data.session_id;
+    chatHistory = [];
+    renderChat();
     if (!res.ok) throw new Error(data.detail || 'Failed to process YouTube video.');
 
     document.getElementById('emptyState').style.display = 'none';
@@ -149,4 +175,23 @@ async function uploadYoutube() {
     btn.disabled = false;
     status.style.display = 'none';
   }
+}
+function renderChat() {
+  const container = document.getElementById('chatContainer');
+  container.innerHTML = '';
+
+  chatHistory.forEach(item => {
+    const q = document.createElement('div');
+    q.className = 'user-msg';
+    q.textContent = item.question;
+
+    const a = document.createElement('div');
+    a.className = 'bot-msg';
+    a.textContent = item.answer;
+
+    container.appendChild(q);
+    container.appendChild(a);
+  });
+
+  container.scrollTop = container.scrollHeight;
 }

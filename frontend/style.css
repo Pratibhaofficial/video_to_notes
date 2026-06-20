@@ -304,3 +304,33 @@ input[type="file"] { display: none; }
 }
 
 .yt-row input:focus { border-color: #6366f1; }
+/* Chat messages */
+#chatContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+/* User message */
+.user-msg {
+  align-self: flex-end;
+  background: #4f46e5;
+  color: white;
+  padding: 8px 12px;
+  border-radius: 12px 12px 0 12px;
+  max-width: 80%;
+  font-size: 13px;
+}
+
+/* Bot message */
+.bot-msg {
+  align-self: flex-start;
+  background: #e0e7ff;
+  color: #1e1b4b;
+  padding: 8px 12px;
+  border-radius: 12px 12px 12px 0;
+  max-width: 80%;
+  font-size: 13px;
+}
