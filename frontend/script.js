@@ -60,7 +60,10 @@ async function uploadFile() {
   try {
     const fd = new FormData();
     fd.append('file', file);
-    const res = await fetch('http://127.0.0.1:8000/upload', { method: 'POST', body: fd });
+    const res = await fetch('https://video-to-notes-backend.onrender.com/upload', {
+  method: 'POST',
+  body: fd
+});
     const data = await res.json();
     sessionId = data.session_id;   // 🔥 STORE SESSION
     chatHistory = [];
@@ -107,14 +110,16 @@ async function askQuestion() {
   answerBox.style.display = 'block';
 
   try {
-    const res = await fetch(`http://127.0.0.1:8000/ask`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        session_id: sessionId,
-        query: query
-      })
-    });
+const res = await fetch('https://video-to-notes-backend.onrender.com/ask', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({
+    session_id: sessionId,
+    query: query
+  })
+});
 
     const data = await res.json();
     if (data.error) throw new Error(data.error);
@@ -153,9 +158,9 @@ async function uploadYoutube() {
   errEl.style.display = 'none';
 
   try {
-    const res = await fetch(`http://127.0.0.1:8000/upload-youtube?url=${encodeURIComponent(url)}`, {
-      method: 'POST'
-    });
+ const res = await fetch(`https://video-to-notes-backend.onrender.com/upload-youtube?url=${encodeURIComponent(url)}`, {
+  method: 'POST'
+});
     const data = await res.json();
     sessionId = data.session_id;
     chatHistory = [];
