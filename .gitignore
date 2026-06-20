@@ -2,7 +2,8 @@ myenv/
 __pycache__/
 *.pyc
 .env
-uploads/
+backend/uploads/
+backend/transcripts/
 *.mp3
 *.wav
 *.mp4
