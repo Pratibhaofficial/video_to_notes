@@ -45,7 +45,7 @@ async def upload_file(file: UploadFile = File(...)):
             status_code=400,
             detail="Unsupported file type. Please upload .mp4, .mp3, .wav, .mkv, or .m4a"
         )
-
+    os.makedirs(UPLOAD_DIR, exist_ok=True) 
     file_path = os.path.abspath(os.path.join(UPLOAD_DIR, file.filename))
 
     with open(file_path, "wb") as buffer:
