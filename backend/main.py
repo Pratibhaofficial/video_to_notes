@@ -45,25 +45,72 @@ async def upload_file(file: UploadFile = File(...)):
             detail="Unsupported file type. Please upload .mp4, .mp3, .wav, .mkv, or .m4a"
         )
 
-    # ✅ ALWAYS ensure uploads folder exists
+    # ✅ ensure folder exists
     os.makedirs(UPLOAD_DIR, exist_ok=True)
 
-    print("UPLOAD_DIR:", UPLOAD_DIR)
-
-    # ✅ SAFE filename (avoids weird issues)
     ext = file.filename.split(".")[-1]
     safe_filename = f"{uuid.uuid4()}.{ext}"
     file_path = os.path.join(UPLOAD_DIR, safe_filename)
 
     print("Saving file at:", file_path)
 
-    # ✅ WRITE FILE
+    # ✅ save file
     try:
         with open(file_path, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
     except Exception as e:
         print("File save error:", str(e))
         raise HTTPException(status_code=500, detail="Failed to save uploaded file")
+
+    try:
+        # ✅ process file
+        if ext == "mp4":
+            audio_path = file_path.replace(".mp4", ".mp3")
+            extract_audio(file_path, audio_path)
+        else:
+            audio_path = file_path
+
+        print("Audio path:", audio_path)
+
+        transcript, detected_lang = transcribe_audio(audio_path)
+
+        if not transcript or transcript.strip() == "":
+            raise HTTPException(
+                status_code=422,
+                detail="Could not extract speech from this file."
+            )
+
+        # ✅ create session
+        session_id = str(uuid.uuid4())
+        sessions[session_id] = {
+            "transcript": transcript,
+            "history": []
+        }
+
+        # ✅ save transcript
+        os.makedirs(os.path.dirname(TRANSCRIPT_PATH), exist_ok=True)
+        with open(TRANSCRIPT_PATH, "w", encoding="utf-8") as f:
+            f.write(transcript)
+
+        # ✅ generate notes
+        try:
+            notes = generate_notes(transcript)
+        except Exception:
+            notes = "Notes could not be generated."
+
+        # ✅ RETURN RESPONSE (this was missing)
+        return {
+            "session_id": session_id,
+            "filename": file.filename,
+            "transcript": transcript,
+            "notes": notes
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        print("Processing error:", str(e))
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/ask")
 async def ask(req: AskRequest):
