@@ -1,6 +1,7 @@
 let activeTab = 'transcript';
 let sessionId = null;
 let chatHistory = [];
+const API_BASE = "http://127.0.0.1:8000";
 function onFileSelect(input) {
   const file = input.files[0];
   if (!file) return;
@@ -60,7 +61,7 @@ async function uploadFile() {
   try {
     const fd = new FormData();
     fd.append('file', file);
-    const res = await fetch('https://video-to-notes-backend.onrender.com/upload', {
+    const res = await fetch(`${API_BASE}/upload`,{
   method: 'POST',
   body: fd
 });
@@ -118,7 +119,7 @@ async function askQuestion() {
   answerBox.style.display = 'block';
 
   try {
-const res = await fetch('https://video-to-notes-backend.onrender.com/ask', {
+const res = await fetch(`${API_BASE}/ask`, {
   method: 'POST',
   headers: {
     'Content-Type': 'application/json'
@@ -166,7 +167,7 @@ async function uploadYoutube() {
   errEl.style.display = 'none';
 
   try {
- const res = await fetch(`https://video-to-notes-backend.onrender.com/upload-youtube?url=${encodeURIComponent(url)}`, {
+ const res = await fetch(`${API_BASE}/upload-youtube?url=${encodeURIComponent(url)}`, {
   method: 'POST'
 });
     const data = await res.json();
